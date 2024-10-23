@@ -1,7 +1,13 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# the next line should be changed so that the path to the data file corresponds to your local machine and i left it as path not to doxx my own directory lmao
+# make sure that jupyter runs on the same directory as the train data
+#os.chdir('PATH') # for jupyter
+
 
 # load the dataset
 data = pd.read_csv('Train_data.csv')
@@ -52,7 +58,7 @@ def plot_pdf_pmf(col):
 
         if unique_values > 1:
             pmf = data[col].value_counts(normalize=True)
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(16, 10))
             pmf.plot(kind='bar', title=f'PMF of {col}')
             plt.xticks(rotation=90)
             plt.show()
@@ -65,7 +71,7 @@ def plot_pdf_pmf(col):
         # DEBUGGING print(f"{col} is continuous with {non_null_count} non-null values.")
 
         if non_null_count > 1:
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(16, 10))
             # plot only values within the 1st and the 99th percentiles to avoid extreme outliers and excess memory usage
             limited_data = data[col].dropna() # drops the null values
             limited_data = limited_data[limited_data.between(limited_data.quantile(0.01), limited_data.quantile(0.99))]
@@ -89,6 +95,7 @@ def plot_cdf(col):
     if data[col].dtype != 'object':
         sorted_data = np.sort(data[col].dropna())
         cdf = np.arange(1, len(sorted_data) + 1) / len(sorted_data)
+        plt.figure(figsize=(16, 10))
         plt.plot(sorted_data, cdf)
         plt.title(f'CDF of {col}')
         plt.show()
@@ -108,7 +115,7 @@ def plot_conditional_pdf(col):
         if unique_values > 1:
             # PMF for categorical data
             pmf = data[col].value_counts(normalize=True)
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(16, 10))
             pmf.plot(kind='bar', title=f'PMF of {col}')
             plt.xticks(rotation=90)
             plt.show()
@@ -117,6 +124,7 @@ def plot_conditional_pdf(col):
 
         # conditional PMF for each class
         for cls in data[class_col].unique():
+            plt.figure(figsize=(16, 10))
             conditional_pmf = data[data[class_col] == cls][col].value_counts(normalize=True)
             conditional_pmf.plot(kind='bar', title=f'conditional PMF of {col} (Class: {cls})', color='red')
             plt.show()
@@ -126,12 +134,14 @@ def plot_conditional_pdf(col):
         filtered_data = data[(data[col] >= lower_bound) & (data[col] <= upper_bound)]
 
         # PDF for continuous data
+        plt.figure(figsize=(16, 10))
         sns.histplot(filtered_data[col], kde=True, stat='density', color='blue', label='Original')
         plt.title(f'original PDF of {col}')
         plt.legend()
         plt.show()
 
         for cls in filtered_data[class_col].unique():
+            plt.figure(figsize=(16, 10))
             sns.histplot(filtered_data[filtered_data[class_col] == cls][col], kde=True, stat='density', color='red',
                          label=f'Conditional PDF (Class: {cls})')
             plt.title(f'conditional PDF of {col} (Class: {cls})')
@@ -151,7 +161,7 @@ for col in data.columns:
 x_field = 'duration'
 y_field = 'protocol_type'
 
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(24, 16))
 sns.scatterplot(data=data, x=x_field, y=y_field, color='red', alpha=0.5)
 plt.title(f'Scatter Plot of {y_field} vs {x_field}')
 plt.xlabel(x_field)
@@ -171,12 +181,14 @@ def plot_joint_pdf_pmf(col1, col2):
         upper_bound = data[col1].quantile(0.99)
         filtered_data = data[(data[col1] >= lower_bound) & (data[col1] <= upper_bound)]
 
+        plt.figure(figsize=(24, 16))
         g = sns.jointplot(x=col1, y=col2, data=filtered_data, kind='kde')
         g.fig.suptitle(f'Joint PDF of {col1} and {col2}', y=1.02)  # y=1.02 to adjust title position
         # cant use plt.title as that'll make it's own figure and look idiotic
         plt.show()
     else:
         joint_pmf = pd.crosstab(data[col1], data[col2], normalize='all')
+        plt.figure(figsize=(24, 16))
         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
         plt.title(f'joint PMF of {col1} and {col2}')
         plt.xlabel(col2)
@@ -196,12 +208,14 @@ def plot_conditional_joint_pdf_pmf(col1, col2):
             upper_bound = data[col1].quantile(0.99)
             filtered_data = data[(data[col1] >= lower_bound) & (data[col1] <= upper_bound)]
 
+            plt.figure(figsize=(24, 16))
             sns.jointplot(x=col1, y=col2, data=filtered_data[filtered_data[class_col] == cls], kind='kde')
             plt.title(f'conditional Joint PDF of {col1} and {col2} (Class: {cls})')
             plt.show()
         else:
             joint_pmf = pd.crosstab(data[data[class_col] == cls][col1], data[data[class_col] == cls][col2],
                                     normalize='all')
+            plt.figure(figsize=(24, 16))
             sns.heatmap(joint_pmf, annot=True, cmap='Reds')
             plt.title(f'Conditional Joint PMF of {col1} and {col2} (Class: {cls})')
             plt.show()
@@ -214,13 +228,33 @@ plot_conditional_joint_pdf_pmf('duration', 'protocol_type')
 # cant include non-numeric types in the corr method
 data_numeric = data.select_dtypes(include=['float64', 'int64'])
 correlation_matrix = data_numeric.corr()
+plt.figure(figsize=(24, 16))
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
 plt.title('correlation matrix')
 plt.show()
 
 # 9. find which field is dependent on the type of attack (anomaly/normal)
-for col in data.columns:
-    if col != class_col:
+
+#for col in data.columns:
+#    if col != class_col:
+#        data_cleaned = data.dropna()
+#        correlation_with_attack = data_cleaned.groupby('class')[col].mean()
+#        print(f"\nfield: {col}")
+#        print(f"mean values per class:\n{correlation_with_attack}")
+
+numeric_fields = data.select_dtypes(include=['float64', 'int64']).columns
+categorical_fields = data.select_dtypes(include=['object']).columns
+
+print("analyzing numeric fields:")
+for col in numeric_fields:
+    if col != class_col:  # avoid grouping by the class column itself (shouldn't be the case here since class isn't numerical but idc)
         correlation_with_attack = data.groupby(class_col)[col].mean()
-        print(f"\nfield: {col}")
-        print(f"mean values per class:\n{correlation_with_attack}")
+        print(f"\nField: {col}")
+        print(f"mean values per class (Anomaly/Normal):\n{correlation_with_attack}")
+
+print("\nAnalyzing Categorical Fields:")
+for col in categorical_fields:
+    if col != class_col:  # avoid using the class column itself
+        correlation_with_attack = data.groupby(class_col)[col].value_counts()
+        print(f"\nField: {col}")
+        print(f"value counts per class (Anomaly/Normal):\n{correlation_with_attack}")
