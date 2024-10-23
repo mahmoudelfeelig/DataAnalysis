@@ -66,11 +66,11 @@ def plot_pdf_pmf(col):
 
         if non_null_count > 1:
             plt.figure(figsize=(10, 6))
-            # plot only values within 0.001 and .999 to avoid extreme outliers and excess memory usage
+            # plot only values within the 1st and the 99th percentiles to avoid extreme outliers and excess memory usage
             limited_data = data[col].dropna() # drops the null values
-            limited_data = limited_data[limited_data.between(limited_data.quantile(0.001), limited_data.quantile(0.999))]
+            limited_data = limited_data[limited_data.between(limited_data.quantile(0.01), limited_data.quantile(0.99))]
             sns.histplot(limited_data, kde=True, stat='density')
-            plt.title(f'PDF of {col} (0.1th to 99.9th percentile)')
+            plt.title(f'PDF of {col} (1st to 99th percentile)')
             plt.show()
         else:
             print(f"skipping {col}: not enough non-null values.")
@@ -121,8 +121,8 @@ def plot_conditional_pdf(col):
             conditional_pmf.plot(kind='bar', title=f'conditional PMF of {col} (Class: {cls})', color='red')
             plt.show()
     else:
-        lower_bound = data[col].quantile(0.001)
-        upper_bound = data[col].quantile(0.999)
+        lower_bound = data[col].quantile(0.01)
+        upper_bound = data[col].quantile(0.99)
         filtered_data = data[(data[col] >= lower_bound) & (data[col] <= upper_bound)]
 
         # PDF for continuous data
@@ -142,33 +142,61 @@ def plot_conditional_pdf(col):
 for col in data.columns:
     if col != class_col:
         plot_conditional_pdf(col)
+    else:
+        break
 
 # 5. scatter plot to indicate the relation between any two data fields
-sns.pairplot(data)
+
+# sns.pairplot(data) this shit doesn't even work lmao
+x_field = 'duration'
+y_field = 'protocol_type'
+
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=data, x=x_field, y=y_field, color='red', alpha=0.5)
+plt.title(f'Scatter Plot of {y_field} vs {x_field}')
+plt.xlabel(x_field)
+plt.ylabel(y_field)
+plt.grid()
+
 plt.show()
 
 
 # 6. calculate and plot the joint PMF/PDF of any two different fields
+
 def plot_joint_pdf_pmf(col1, col2):
+
     if data[col1].dtype != 'object' and data[col2].dtype != 'object':
-        sns.jointplot(x=col1, y=col2, data=data, kind='kde')
+        # i can filter just one time to save computational power
+        lower_bound = data[col1].quantile(0.01)
+        upper_bound = data[col1].quantile(0.99)
+        filtered_data = data[(data[col1] >= lower_bound) & (data[col1] <= upper_bound)]
+
+        g = sns.jointplot(x=col1, y=col2, data=filtered_data, kind='kde')
+        g.fig.suptitle(f'Joint PDF of {col1} and {col2}', y=1.02)  # y=1.02 to adjust title position
+        # cant use plt.title as that'll make it's own figure and look idiotic
         plt.show()
     else:
         joint_pmf = pd.crosstab(data[col1], data[col2], normalize='all')
         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
         plt.title(f'joint PMF of {col1} and {col2}')
+        plt.xlabel(col2)
+        plt.ylabel(col1)
         plt.show()
 
 
-plot_joint_pdf_pmf('src_bytes', 'dst_bytes')
-
+plot_joint_pdf_pmf('duration', 'protocol_type')
 
 # 7. joint PMF/PDF conditioned on the class
 def plot_conditional_joint_pdf_pmf(col1, col2):
     for cls in data[class_col].unique():
         print(f"\nClass: {cls}")
+
         if data[col1].dtype != 'object' and data[col2].dtype != 'object':
-            sns.jointplot(x=col1, y=col2, data=data[data[class_col] == cls], kind='kde')
+            lower_bound = data[col1].quantile(0.01)
+            upper_bound = data[col1].quantile(0.99)
+            filtered_data = data[(data[col1] >= lower_bound) & (data[col1] <= upper_bound)]
+
+            sns.jointplot(x=col1, y=col2, data=filtered_data[filtered_data[class_col] == cls], kind='kde')
             plt.title(f'conditional Joint PDF of {col1} and {col2} (Class: {cls})')
             plt.show()
         else:
@@ -179,10 +207,13 @@ def plot_conditional_joint_pdf_pmf(col1, col2):
             plt.show()
 
 
-plot_conditional_joint_pdf_pmf('src_bytes', 'dst_bytes')
+plot_conditional_joint_pdf_pmf('duration', 'protocol_type')
 
 # 8. calculate the correlation between different data fields
-correlation_matrix = data.corr()
+#correlation_matrix = data.corr()
+# cant include non-numeric types in the corr method
+data_numeric = data.select_dtypes(include=['float64', 'int64'])
+correlation_matrix = data_numeric.corr()
 sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm')
 plt.title('correlation matrix')
 plt.show()
