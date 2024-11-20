@@ -9,7 +9,8 @@ import matplotlib.pyplot as plt
 # Task 1
 
 # load the dataset
-data = pd.read_csv('Train_data.csv')
+original = pd.read_csv('Train_data.csv')
+data = original
 
 # identify the target column and separate features
 class_col = 'class'
@@ -29,7 +30,7 @@ X_train_numeric = scaler.fit_transform(X_train[numeric_cols])
 X_test_numeric = scaler.transform(X_test[numeric_cols])
 
 # preprocess categorical data (one-hot encoding)
-encoder = OneHotEncoder(sparse=False, handle_unknown='ignore')
+encoder = OneHotEncoder(sparse_output=False, handle_unknown='ignore')
 X_train_categorical = encoder.fit_transform(X_train[categorical_cols])
 X_test_categorical = encoder.transform(X_test[categorical_cols])
 
@@ -54,7 +55,6 @@ for threshold in thresholds:
     # predict anomalies for test data
     z_test = np.abs((X_test_processed_df - X_train_processed_df.mean()) / X_train_processed_df.std())
     anomaly_preds = (z_test > threshold).any(axis=1).astype(int)
-
     # convert y_test to binary (assuming 'normal' = 0, 'anomaly' = 1)
     y_test_binary = (y_test == 'anomaly').astype(int)
 
@@ -64,6 +64,8 @@ for threshold in thresholds:
     recall = recall_score(y_test_binary, anomaly_preds)
 
     print(f"Accuracy: {accuracy:.2f}, Precision: {precision:.2f}, Recall: {recall:.2f}")
+    anomalies_detected = anomaly_preds.sum()
+    print(f"Anomalies Detected: {anomalies_detected}")
     results.append((threshold, accuracy, precision, recall))
 
 # plot performance metrics for different thresholds
@@ -80,7 +82,6 @@ plt.grid()
 plt.show()
 
 
-
 # Task 2
 
 original_data = pd.read_csv("Train_data.csv")
@@ -92,9 +93,16 @@ train_data['class'] = original_data.loc[train_data.index, 'class']
 # convert 'class' column to binary values
 train_data['class'] = train_data['class'].map({'anomaly': 1, 'normal': 0})
 
+# exclude columns with zero variance
+numerical_columns = train_data.select_dtypes(include=['float64', 'int64']).columns
+numerical_columns = [col for col in numerical_columns if train_data[col].std() > 0]
+
+# replace NaN/Inf values
+train_data = train_data.replace([np.inf, -np.inf], np.nan).dropna()
+
 # fit a variety of distributions and calculate MSE
 def fit_pdf_and_calculate_mse(data):
-    distributions = [stats.norm, stats.expon, stats.uniform, stats.pareto, stats.lognorm, stats.gamma,
+    distributions = [stats.norm, stats.expon, stats.uniform, stats.pareto, stats.gamma,
                      stats.weibull_min]
     best_fit = None
     min_mse = float('inf')
@@ -126,13 +134,44 @@ def fit_pdf_and_calculate_mse(data):
     return best_fit, best_dist, best_params, min_mse
 
 
-# example usage on a numerical column in the data
-test_column = data['src_bytes']
-best_fit, best_dist, best_params, min_mse = fit_pdf_and_calculate_mse(test_column)
+for column in numerical_columns:
+    # skip column if it contains NaN values
+    data = train_data[column]
 
-print(f"Best Distribution: {best_dist.name}")
-print(f"Parameters: {best_params}")
-print(f"Mean Squared Error: {min_mse}")
+    # ensure data is numeric
+    if not pd.api.types.is_numeric_dtype(data):
+        print(f"Skipping column {column} because it is not numeric.")
+        continue
+
+    # remove NaN or infinite values (if any)
+    clean_data = data.dropna()  # Drop NaN values
+    clean_data = clean_data[np.isfinite(clean_data)]  # Drop infinite values
+
+    if clean_data.empty:
+        print(f"Skipping column {column} due to lack of valid data.")
+        continue
+
+    # handle extreme values by clipping or removing outliers
+    # clipping values to a reasonable range (adjust as needed)
+    clip_min, clip_max = clean_data.quantile(0.01), clean_data.quantile(0.99)  # 1st and 99th percentiles
+    clean_data = clean_data.clip(lower=clip_min, upper=clip_max)
+
+    # skip column if it has constant or zero variance
+    if clean_data.nunique() <= 1 or clean_data.std() == 0:
+        print(f"Skipping column {column} due to insufficient variance or constant values.")
+        continue
+
+    try:
+        best_fit, best_dist, best_params, min_mse = fit_pdf_and_calculate_mse(clean_data)
+        if best_dist is not None:
+            print(f"Best Distribution: {best_dist.name}")
+            print(f"Parameters: {best_params}")
+            print(f"Mean Squared Error: {min_mse}")
+        else:
+            print(f"Skipping column {column} as no valid distribution was found.")
+    except Exception as e:
+        print(f"Fitting failed for {column} with error: {e}")
+    print(f"")
 
 # A function that calculates the pmf
 def calculate_pmf(data):
@@ -160,7 +199,6 @@ for column in categorical_columns:
     # calculate the conditional PMF for normal (class == 0)
     normal_data = train_data[train_data['class'] == 0]
     pmf_results[column]['normal_pmf'] = calculate_pmf(normal_data[column])
-
 
 # print PMF results for reference
 for column, pmf_data in pmf_results.items():
