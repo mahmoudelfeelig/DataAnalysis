@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # Task 1
 
 # load the dataset
-original = pd.read_csv('Train_data.csv')
+original = pd.read_csv('Actual_Data.csv')
 data = original
 
 # identify the target column and separate features
@@ -84,8 +84,8 @@ plt.show()
 
 # Task 2
 
-original_data = pd.read_csv("Train_data.csv")
-train_data = pd.read_csv("Train_data.csv")
+original_data = pd.read_csv("Actual_Data.csv")
+train_data = pd.read_csv("Actual_Data.csv")
 
 # bring the 'class' column back from original data
 train_data['class'] = original_data.loc[train_data.index, 'class']
