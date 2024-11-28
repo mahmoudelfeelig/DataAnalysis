@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score
 from sklearn.naive_bayes import GaussianNB, MultinomialNB, BernoulliNB
 
 # load dataset
-data = pd.read_csv('Actual_Data.csv')
+data = pd.read_csv('../Data/Actual_Data.csv')
 
 # identify numerical and categorical columns
 numerical_columns = data.select_dtypes(include=['float64', 'int64']).columns

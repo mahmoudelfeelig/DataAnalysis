@@ -1,16 +1,10 @@
-import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# the next line should be changed so that the path to the data file corresponds to your local machine and i left it as path not to doxx my own directory lmao
-# make sure that jupyter runs on the same directory as the train data
-#os.chdir('PATH') # for jupyter
-
-
 # load the dataset
-data = pd.read_csv('Train_data.csv')
+data = pd.read_csv('../Data/Train_data.csv')
 
 # 1(a) List the data fields (columns)
 print("Data Fields (Columns):")
@@ -187,7 +181,7 @@ def plot_joint_pdf_pmf(col1, col2):
         # cant use plt.title as that'll make it's own figure and look idiotic
         plt.show()
     else:
-        joint_pmf = pd.crosstab(data[col1], data[col2], normalize='all')
+        joint_pmf = pd.crosstab(data[col1], data[col2], normalize=True)
         plt.figure(figsize=(24, 16))
         sns.heatmap(joint_pmf, annot=True, cmap='Blues')
         plt.title(f'joint PMF of {col1} and {col2}')
@@ -214,7 +208,7 @@ def plot_conditional_joint_pdf_pmf(col1, col2):
             plt.show()
         else:
             joint_pmf = pd.crosstab(data[data[class_col] == cls][col1], data[data[class_col] == cls][col2],
-                                    normalize='all')
+                                    normalize=True)
             plt.figure(figsize=(24, 16))
             sns.heatmap(joint_pmf, annot=True, cmap='Reds')
             plt.title(f'Conditional Joint PMF of {col1} and {col2} (Class: {cls})')
