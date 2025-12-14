@@ -1,12 +1,10 @@
-# 📊 DataAnalysis
+# DataAnalysis
 
-A comprehensive anomaly detection pipeline built in Python using statistical methods and machine learning models. This project walks through the full data science workflow: from exploratory data analysis to statistical profiling, Z-score filtering, PDF/PMF modeling, and a custom implementation of a Naïve Bayes classifier — all benchmarked against scikit-learn's models.
+A comprehensive anomaly detection pipeline built in Python using statistical methods and machine learning models. This project walks through the full data science workflow: from exploratory data analysis to statistical profiling, Z-score filtering, PDF/PMF modeling, and a custom implementation of a Naïve Bayes classifier, all benchmarked against scikit-learn's models.
 
----
+## Project Structure
 
-## 📁 Project Structure
-
-```
+```text
 DataAnalysis/
 ├── Data/
 │   ├── Actual_Data.csv         # Full dataset with class labels
@@ -21,11 +19,10 @@ DataAnalysis/
 │   └── Milestone3.py           # Manual + sklearn Naïve Bayes classifiers
 ```
 
----
+## Key Features
 
-## 🧠 Key Features
+### Exploratory Data Analysis (Milestone 1)
 
-### 🔍 Exploratory Data Analysis (Milestone 1)
 - Automatic detection of data types
 - Missing and infinite value detection
 - Statistical summaries (mean, variance, range)
@@ -34,14 +31,16 @@ DataAnalysis/
 - Joint and conditional PDFs
 - Correlation heatmaps
 
-### 📏 Statistical Outlier Detection (Milestone 2)
+### Statistical Outlier Detection (Milestone 2)
+
 - Z-score based anomaly detection
 - Grid search over thresholds (2.0 to 3.0)
 - Performance plots for Accuracy, Precision, Recall
 - PDF fitting (normal, gamma, pareto, etc.)
 - PMF modeling for categorical features
 
-### 🧠 Naïve Bayes Classification (Milestone 3)
+### Naïve Bayes Classification (Milestone 3)
+
 - Fully vectorized custom Naïve Bayes implementation
 - Log-space optimization for underflow stability
 - Support for both categorical and numerical features
@@ -50,22 +49,18 @@ DataAnalysis/
   - MultinomialNB
   - BernoulliNB (from scikit-learn)
 
----
+## Sample Visualizations
 
-## 📊 Sample Visualizations
+- Histogram and KDE plots for feature distributions
+- Conditional PDFs split by class
+- Heatmaps for joint PMFs
+- CDF overlays
+- Correlation matrix of numerical fields
+- Metric vs threshold performance curves
 
-- Histogram & KDE plots for feature distributions  
-- Conditional PDFs split by class  
-- Heatmaps for joint PMFs  
-- CDF overlays  
-- Correlation matrix of numerical fields  
-- Metric vs threshold performance curves  
+(See notebooks for full outputs.)
 
-*(See notebooks for full outputs.)*
-
----
-
-## 📦 Dependencies
+## Dependencies
 
 - Python 3.8+
 - pandas
@@ -75,9 +70,7 @@ DataAnalysis/
 - scikit-learn
 - scipy
 
----
-
-## 🚀 How to Run
+## How to Run
 
 1. Clone the repo:
 
@@ -100,18 +93,14 @@ DataAnalysis/
    python src/Milestone3.py
    ```
 
----
-
-## 🧪 Evaluation Metrics
+## Evaluation Metrics
 
 - Accuracy, Precision, Recall at multiple thresholds
 - Cross-correlation of original vs reconstructed signals
 - Distribution fitting Mean Squared Error
 - Side-by-side classifier performance summaries
 
----
-
-## 📚 Educational Goals
+## Educational Goals
 
 This project is ideal for:
 
@@ -121,15 +110,11 @@ This project is ideal for:
 - Exploring how distribution assumptions impact modeling
 - Comparing classical models vs ML libraries
 
----
-
-## 👨‍💻 Author
+## Author
 
 **Mahmoud Elfeel**  
-🔗 [GitHub Profile](https://github.com/mahmoudelfeelig)
+[GitHub Profile](https://github.com/mahmoudelfeelig)
 
----
-
-## 📖 License
+## License
 
 This project is licensed under the [MIT License](LICENSE).
